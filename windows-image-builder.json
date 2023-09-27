@@ -1,0 +1,32 @@
+{
+    "builders": [
+      {
+        "type": "googlecompute",
+        "project_id": "",
+        "source_image_family": "windows-2016",
+        "source_image_project_id": "gce-uefi-images",
+        "zone": "",
+        "disk_size": "50",
+        "image_name": "jenkins-agent-windows-{{timestamp}}",
+        "image_family": "jenkins-agent-windows",
+        "communicator": "winrm",
+        "winrm_username": "packer_user",
+        "winrm_insecure": true,
+        "winrm_use_ssl": true,
+        "network": "default",
+        "network_project_id": "",
+        "subnetwork": "",
+        "omit_external_ip": "true",
+        "use_internal_ip": "true",
+        "metadata": {
+          "windows-startup-script-cmd": "winrm quickconfig -quiet & net user /add packer_user & net localgroup administrators packer_user /add & winrm set winrm/config/service/auth @{Basic=\"true\"}"
+        }
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "powershell",
+        "script": "windows-image-install.ps1"
+      }
+    ]
+  }
