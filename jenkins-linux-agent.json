@@ -1,0 +1,23 @@
+{
+  "builders": [
+    {
+      "type": "googlecompute",
+      "project_id": "",
+      "source_image_family": "ubuntu-2004-lts",
+      "source_image_project_id": "ubuntu-os-cloud",
+      "zone": "",
+      "disk_size": "10",
+      "image_name": "jenkins-linux-agent-{{timestamp}}",
+      "image_family": "jenkins-linux-agent",
+      "ssh_username": "ubuntu",
+      "network": "default",
+      "subnetwork": ""
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done && sudo apt-get update && sudo apt-get install -y default-jdk"]
+    }
+  ]
+}
