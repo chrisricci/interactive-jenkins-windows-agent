@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+    stages {
+        stage('Bootstrap') {
+            steps {
+                node('bootstrap') {
+                powershell('''
+                Function Get-RandomAlphanumericString {
+                    [CmdletBinding()]
+                    Param (
+                        [int] $length = 6
+                    )
+                    Begin{
+                    }
+                    Process{
+                        Write-Output ( -join ((0x30..0x39) + ( 0x41..0x5A) + ( 0x61..0x7A) | Get-Random -Count $length  | % {[char]$_}) )
+                    }    
+                }
+                $key = Get-RandomAlphanumericString
+                gcloud compute instances create jenkins-win-$key `
+                    --project=<PROJECT_ID> `
+                    --zone=us-east1-b `
+                    --machine-type=n2-standard-8 `
+                    --network-interface=stack-type=IPV4_ONLY,subnet=us-east1,no-address `
+                    --metadata=enable-oslogin=true,windows-startup-script-url=gs://<PROJECT_ID>/windows-startup-script.ps1 `
+                    --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append `
+                    --create-disk=auto-delete=yes,boot=yes,device-name=instance-13,image=projects/<PROJECT_ID>/global/images/jenkins-agent-windows-1695264510,mode=rw,size=50,type=projects/<PROJECT_ID>/zones/us-east1-b/diskTypes/pd-balanced 
+                ''')
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                node('windows-gcp') {
+                powershell('''
+                    notepad
+                ''')
+                }
+            }
+        }
+    }
+}
